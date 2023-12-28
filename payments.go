@@ -45,6 +45,7 @@ type paymentObjectImp struct {
  * @live - a bool representing if the object is being used for tests or live transaction.
  * @chans - a string slice of payment channels accepted by the merchant.
  */
+// TODO: create validation for input
 func NewPaymentObj(key, url string, charge, live bool, chans []string) PaymentObject {
 	return &paymentObjectImp{
 		ApiKey:       key,
@@ -117,6 +118,8 @@ func (p paymentObjectImp) Initiate(amount float64, currency, ref string, custome
 func (paymentObjectImp) convert(amount float64) int {
 	return int(math.Round(amount * 100))
 }
+
+// TODO: refactore the complete url to be a function and not a reciever method
 
 /*
  * completeUrl - returns the proper url for live and test objects
