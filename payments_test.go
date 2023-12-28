@@ -51,17 +51,34 @@ func Test_paymentObjectImp_Initiate_success(t *testing.T) {
 	var expectedAmount float64
 	_ = godotenv.Load()
 	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
 	cur := "usd"
 	amount := float64(100)
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
 
-	if cur == "usd" || cur == "USD" {
-		expectedAmount = amount*100 + float64(350)
-	} else if cur == "ngn" || cur == "NGN" {
-		expectedAmount = amount*100 + float64(100)
+	switch {
+	case charge:
+		if cur == "usd" || cur == "USD" {
+			expectedAmount = amount*100 + float64(350)
+		} else if cur == "ngn" || cur == "NGN" {
+			expectedAmount = amount*100 + float64(100)
+		}
+	case !charge:
+		if cur == "usd" || cur == "USD" {
+			expectedAmount = amount * 100
+		} else if cur == "ngn" || cur == "NGN" {
+			expectedAmount = amount * 100
+		}
 	}
 
-	squad := NewPaymentObj(apiKey, "testUrl.com", true, false, []string{"card", "bank", "ussd"})
-	res, err := squad.Initiate(amount, cur, "", map[string]string{"email": "eg@mail.com"}, nil, false)
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.Initiate(amount, cur, "", map[string]string{"email": "eg@mail.com"}, nil, false)
 	t.Log(res)
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
@@ -81,12 +98,21 @@ func Test_paymentObjectImp_Initiate_success(t *testing.T) {
 func Test_paymentObjectImp_Initiate_wrong_input_no_customer_map(t *testing.T) {
 	_ = godotenv.Load()
 	apiKey := os.Getenv("API_KEY")
-	squad := NewPaymentObj(apiKey, "testUrl.com", true, false, []string{"card", "bank", "ussd"})
-	res, err := squad.Initiate(100, "NGN", "", nil, nil, false)
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	cur := "usd"
+	amount := float64(100)
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.Initiate(amount, cur, "", nil, nil, false)
 	assert.Nil(t, res)
 	assert.NotNil(t, err)
 	assert.Error(t, err)
-	// error1 := expectedError("customer map must be passed")
 	assert.EqualError(t, err, "customer map must be passed")
 }
 
@@ -94,8 +120,18 @@ func Test_paymentObjectImp_Initiate_wrong_input_no_customer_map(t *testing.T) {
 func Test_paymentObjectImp_Initiate_wrong_input_currency(t *testing.T) {
 	_ = godotenv.Load()
 	apiKey := os.Getenv("API_KEY")
-	squad := NewPaymentObj(apiKey, "testUrl.com", true, false, []string{"card", "bank", "ussd"})
-	res, err := squad.Initiate(100, "abc", "", map[string]string{"email": "eg@mail.com"}, nil, false)
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	cur := "abc"
+	amount := float64(100)
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.Initiate(amount, cur, "", map[string]string{"email": "eg@mail.com"}, nil, false)
 	assert.Nil(t, res)
 	assert.NotNil(t, err)
 	assert.Error(t, err)
@@ -106,10 +142,42 @@ func Test_paymentObjectImp_Initiate_wrong_input_currency(t *testing.T) {
 func Test_paymentObjectImp_Initiate_wrong_no_customer_email(t *testing.T) {
 	_ = godotenv.Load()
 	apiKey := os.Getenv("API_KEY")
-	squad := NewPaymentObj(apiKey, "testUrl.com", true, false, []string{"card", "bank", "ussd"})
-	res, err := squad.Initiate(100, "usd", "", map[string]string{"name": "joseph folayan"}, nil, false)
+
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	cur := "usd"
+	amount := float64(100)
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.Initiate(amount, cur, "", map[string]string{"name": "joseph folayan"}, nil, false)
 	assert.Nil(t, res)
 	assert.NotNil(t, err)
 	assert.Error(t, err)
 	assert.EqualError(t, err, "customer email must be provided")
+}
+
+func Test_paymentObjectImp_Initiate_wrong_input_amount(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	cur := "usd"
+	amount := float64(0)
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.Initiate(amount, cur, "", map[string]string{"email": "eg@mail.com"}, nil, false)
+	assert.Nil(t, res)
+	assert.NotNil(t, err)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "amount is not provided")
 }

@@ -38,25 +38,6 @@ type paymentObjectImp struct {
 }
 
 /*
- * NewPaymentObj - returns the pointer to a Payment Object that would be used to implement squad api functionalities.
- * @key string - A unique api key placed in the header of all squad requests.
- * @url string - The URL used to recieve transaction status webhooks.
- * @charge bool - a bool used to represent wether transaction fees are charged from the customer or merchant.
- * @live - a bool representing if the object is being used for tests or live transaction.
- * @chans - a string slice of payment channels accepted by the merchant.
- */
-// TODO: create validation for input
-func NewPaymentObj(key, url string, charge, live bool, chans []string) PaymentObject {
-	return &paymentObjectImp{
-		ApiKey:       key,
-		CallBack:     url,
-		PassCharge:   charge,
-		PaymentChans: chans,
-		live:         live,
-	}
-}
-
-/*
  * Initiate - a method used to initiate the payment.
  * @amount - the float value to be charged.
  * @currency - the currency to be charged.
@@ -77,8 +58,6 @@ func (p paymentObjectImp) Initiate(amount float64, currency, ref string, custome
 		return nil, errors.New("currency should be NGN or USD")
 	case amount == 0:
 		return nil, errors.New("amount is not provided")
-	case customer == nil:
-		return nil, errors.New("customer map must be provided")
 	case !emailOk:
 		return nil, errors.New("customer email must be provided")
 	}
