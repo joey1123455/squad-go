@@ -4,6 +4,7 @@ import (
 	"net/mail"
 	"net/url"
 	"regexp"
+	"time"
 )
 
 func IsValidURL(input string) bool {
@@ -47,4 +48,15 @@ func IsValidNigerianAccountNumber(accountNumber string) bool {
 
 	// Match the string against the regex
 	return regex.MatchString(accountNumber)
+}
+
+func IsValidDateOfBirth(dateOfBirth string) bool {
+	// Define the expected date layout
+	layout := "01/02/2006"
+
+	// Parse the date string
+	parsedDate, err := time.Parse(layout, dateOfBirth)
+
+	// Check for parsing errors and validate the date
+	return err == nil && parsedDate.Before(time.Now())
 }

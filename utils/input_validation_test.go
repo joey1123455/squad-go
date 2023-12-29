@@ -134,3 +134,29 @@ func Test_IsValidNigerianAccountNumber(t *testing.T) {
 		})
 	}
 }
+
+func Test_IsValidDateOfBirth(t *testing.T) {
+	testCases := []struct {
+		dateOfBirth    string
+		expectedResult bool
+	}{
+		{"05/15/1990", true},    // Valid
+		{"12/31/2005", true},    // Valid
+		{"02/30/1980", false},   // Invalid: February 30th doesn't exist
+		{"invalid-date", false}, // Invalid: Not a valid date format
+		{"01/01/2025", false},   // Invalid: Future date
+		{"13/25/1990", false},   // Invalid: Month greater than 12
+		{"05/32/1990", false},   // Invalid: Day greater than 31
+		{"00/15/1990", false},   // Invalid: Month zero
+		{"05/00/1990", false},   // Invalid: Day zero
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.dateOfBirth, func(t *testing.T) {
+			result := IsValidDateOfBirth(tc.dateOfBirth)
+			if result != tc.expectedResult {
+				t.Errorf("Expected isValidDateOfBirth(%s) to be %t, but got %t", tc.dateOfBirth, tc.expectedResult, result)
+			}
+		})
+	}
+}
