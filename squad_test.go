@@ -247,3 +247,258 @@ func Test_squadBaseACC_NewBussinessVirtualAcc_wrong_input_acc_no(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, "invalid bank account number format")
 }
+
+func Test_NewCustomerVirtualAcc_success(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "folayan"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn bauchi"
+	gender := "1"
+	no := "08118995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	expectedName := squad.(*squadBaseACC).parseVirtualAccName(first)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+
+	virImp := virAcc.(*customerVA)
+	assert.Equal(t, id, virImp.customerID)
+	assert.Equal(t, expectedName, virImp.firstName)
+	assert.Equal(t, last, virImp.lastName)
+	assert.Equal(t, email, virImp.email)
+	assert.Equal(t, dob, virImp.dob)
+	assert.Equal(t, address, virImp.address)
+	assert.Equal(t, gender, virImp.gender)
+	assert.Equal(t, name, virImp.accountName)
+	assert.Equal(t, apiKey, virImp.apiKey)
+	assert.Equal(t, no, virImp.mobileNo)
+	assert.Equal(t, accNo, virImp.beneficiaryAcc)
+	assert.Equal(t, bvn, virImp.bvn)
+	assert.Equal(t, live, virImp.live)
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_first_name(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := ""
+	last := "folayan"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn bauchi"
+	gender := "1"
+	no := "08118995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "first name must be passed")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_customer_id(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "folayan"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn bauchi"
+	gender := "1"
+	no := "08118995454"
+	id := ""
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "unique id must be passed")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_last_name(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := ""
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn bauchi"
+	gender := "1"
+	no := "08118995454"
+	id := "xyztyr2"
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "last name must be passed")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_mobile_no(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn bauchi"
+	gender := "1"
+	no := "0811899545"
+	id := "xyztyr2"
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid phone no format")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_email(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "james"
+	email := "joeyfolayan5@.com"
+	dob := "10/09/2000"
+	address := "village inn bauchi"
+	gender := "1"
+	no := "08118995445"
+	id := "xyztyr2"
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid email address")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_address(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := ""
+	gender := "1"
+	no := "08118995445"
+	id := "xyztyr2"
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "please provide customer address")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_gender(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn"
+	gender := "3"
+	no := "08118995445"
+	id := "xyztyr2"
+	accNo := "1234567291"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "gender should be '1' for male or '2' for female")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_acc_no(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn"
+	gender := "2"
+	no := "08118995445"
+	id := "xyztyr2"
+	accNo := "12345678891"
+	bvn := "12345678911"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid bank account number format")
+}
+
+func Test_NewCustomerVirtualAcc_wrong_input_bvn(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	first := "joseph"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village inn"
+	gender := "2"
+	no := "08118995445"
+	id := "xyztyr2"
+	accNo := "1234567891"
+	bvn := "123456789119"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, virAcc)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid bvn format should be 11 digits")
+}

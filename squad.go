@@ -11,6 +11,7 @@ import (
 type SquadBaseAcc interface {
 	CreatePaymentObject(charge bool, chans []string) PaymentObject
 	NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error)
+	NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error)
 }
 
 /*
@@ -110,6 +111,63 @@ func (sba squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (V
 		accountName:    sba.AccountName,
 		live:           sba.Live,
 	}, nil
+}
+
+/*
+ * NewCustomerVirtualAcc - function that returns a customer virtual account.
+ * @customerID - a unique string representing the customer id.
+ * @firstName - string representing customers first name.
+ * @lastName - string representing customers last name.
+ * @mobileNo - customers mobile no.
+ * @email - customers email address.
+ * @bvn - customers bvn.
+ * @dob - customers date of birth.
+ * @address - customers address.
+ * @gender - customers gender 1 for male, 2 for female pass as a string.
+ * @beneficiaryAcc - customers account no
+ * @bvn - string representing the bussiness bvn associated to the provided bvn
+ */
+func (sba squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error) {
+	// input validation
+	switch {
+	case customerID == "":
+		return nil, errors.New("unique id must be passed")
+	case firstName == "":
+		return nil, errors.New("first name must be passed")
+	case lastName == "":
+		return nil, errors.New("last name must be passed")
+	case !utils.IsValidNigerianPhoneNumber(mobileNo):
+		return nil, errors.New("invalid phone no format")
+	case !utils.IsValidEmail(email):
+		return nil, errors.New("invalid email address")
+	case !utils.IsValidDateOfBirth(dob):
+		return nil, errors.New("invalid date of birth")
+	case address == "":
+		return nil, errors.New("please provide customer address")
+	case gender != "1" && gender != "2":
+		return nil, errors.New("gender should be '1' for male or '2' for female")
+	case !utils.IsValidNigerianAccountNumber(beneficiaryAcc):
+		return nil, errors.New("invalid bank account number format")
+	case !utils.IsValidNigerianBVN(bvn):
+		return nil, errors.New("invalid bvn format should be 11 digits")
+	}
+
+	return &customerVA{
+		customerID:     customerID,
+		firstName:      sba.parseVirtualAccName(firstName),
+		lastName:       lastName,
+		mobileNo:       mobileNo,
+		email:          email,
+		bvn:            bvn,
+		dob:            dob,
+		address:        address,
+		gender:         gender,
+		beneficiaryAcc: beneficiaryAcc,
+		apiKey:         sba.ApiKey,
+		accountName:    sba.AccountName,
+		live:           sba.Live,
+	}, nil
+
 }
 
 /*
