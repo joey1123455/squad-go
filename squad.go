@@ -7,9 +7,10 @@ import (
 	"github.com/joey1123455/squad-go/utils"
 )
 
-// an interface exposing the methods of a squadimplementation
+// an interface exposing the methods of a squad object implementation
 type SquadBaseAcc interface {
 	CreatePaymentObject(charge bool, chans []string) PaymentObject
+	NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error)
 }
 
 /*
@@ -27,7 +28,7 @@ type squadBaseACC struct {
 }
 
 /*
- * NewPaymentObj - returns the pointer to a Payment Object that would be used to implement squad api functionalities.
+ * NewSquadObj - returns the pointer to a Squad Object that would be used to create other squad objects.
  * @key string - A unique api key placed in the header of all squad requests.
  * @url string - The URL used to recieve transaction status webhooks.
  * @name - a string representing the registered squad account name.
@@ -64,6 +65,7 @@ func NewSquadObj(key, url, name string, live bool) (SquadBaseAcc, error) {
  * @chans - a string slice of payment channels accepted by the merchant.
  */
 func (sba squadBaseACC) CreatePaymentObject(charge bool, chans []string) PaymentObject {
+	// TODO: implement validation for the payment channel slice
 	return &paymentObjectImp{
 		ApiKey:       sba.ApiKey,
 		CallBack:     sba.CallBack,
@@ -71,4 +73,50 @@ func (sba squadBaseACC) CreatePaymentObject(charge bool, chans []string) Payment
 		PaymentChans: chans,
 		live:         sba.Live,
 	}
+}
+
+/*
+ * NewBussinessVirtualAcc - function that returns a bussines virtual account.
+ * @id - a unique string representing the bussiness id.
+ * @name - a string representings the bussiness name. all virtual accounts must carry a slug as a prefix
+ * to the name. The slug must be a portion of the bussiness name or abbreviations of your business name used to open
+ * the squad account as one word. Please note that slash (/) is not allowed and only hyphen (-) can be used.
+ * @acc - string representing a users original account no.
+ * @no - string representing a users phone number.
+ * @bvn - string representing the bussiness bvn associated to the provided bvn
+ */
+func (sba squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error) {
+	// input validation
+	switch {
+	case id == "":
+		return nil, errors.New("unique id must be passed")
+	case name == "":
+		return nil, errors.New("bussiness name must be passed")
+	case !utils.IsValidNigerianBVN(bvn):
+		return nil, errors.New("invalid bvn format should be 11 digits")
+	case !utils.IsValidNigerianPhoneNumber(no):
+		return nil, errors.New("invalid phone no format")
+	case !utils.IsValidNigerianAccountNumber(acc):
+		return nil, errors.New("invalid bank account number format")
+	}
+
+	return &bussinessVA{
+		customerID:     id,
+		bussinessName:  sba.parseVirtualAccName(name),
+		mobileNo:       no,
+		apiKey:         sba.ApiKey,
+		bvn:            bvn,
+		beneficiaryAcc: acc,
+		accountName:    sba.AccountName,
+		live:           sba.Live,
+	}, nil
+}
+
+/*
+ * parsedVirtualAccName - combines the customer name with the bussines name for virtual account creation
+ * @customerName - string representing customers name for a virtual account
+ */
+func (sba squadBaseACC) parseVirtualAccName(customerName string) string {
+	parts := strings.Split(sba.AccountName, " ")
+	return parts[0] + "-" + customerName
 }
