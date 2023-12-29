@@ -22,30 +22,6 @@ func Test_paymentObjectImp_convert(t *testing.T) {
 	assert.Equal(t, 14506572, amt4)
 }
 
-// go test -run Test_paymentObjectImp_completeUrl_false
-func Test_paymentObjectImp_completeUrl_false(t *testing.T) {
-	squad := paymentObjectImp{
-		live: false,
-	}
-	url := squad.completeUrl("transaction/initiate")
-	notExpected := "https://api-d.squadco.com/transaction/initiate"
-	expected := "https://sandbox-api-d.squadco.com/transaction/initiate"
-	assert.Equal(t, expected, url)
-	assert.NotEqual(t, notExpected, url)
-}
-
-// go test -run Test_paymentObjectImp_completeUrl_true
-func Test_paymentObjectImp_completeUrl_true(t *testing.T) {
-	squad := paymentObjectImp{
-		live: true,
-	}
-	url := squad.completeUrl("transaction/initiate")
-	expected := "https://api-d.squadco.com/transaction/initiate"
-	notExpected := "https://sandbox-api-d.squadco.com/transaction/initiate"
-	assert.Equal(t, expected, url)
-	assert.NotEqual(t, notExpected, url)
-}
-
 // go test -run Test_paymentObjectImp_Initiate_success
 func Test_paymentObjectImp_Initiate_success(t *testing.T) {
 	var expectedAmount float64

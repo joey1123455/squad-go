@@ -21,14 +21,14 @@ type PaymentObject interface {
 }
 
 /*
-  - The original squad object to be implemented as an interface.
-  - @ApiKey - a string representing a squad account api key.
-  - @CallBack - a string representing a url, where transaction status webkooks will be sent to.
-  - @PassCharge - a boolean field representing if the payment charges while be charged from the
-    customer or merchant (false is default).
-  - @PaymentChans - a string slice of payment channels accepted by the merchant.
-  - @Live - a bool representing if the object is being used for tests or live transaction.
-*/
+ * The original squad object to be implemented as an interface.
+ * @ApiKey - a string representing a squad account api key.
+ * @CallBack - a string representing a url, where transaction status webkooks will be sent to.
+ * @PassCharge - a boolean field representing if the payment charges while be charged from the
+ * customer or merchant (false is default).
+ * @PaymentChans - a string slice of payment channels accepted by the merchant.
+ * @Live - a bool representing if the object is being used for tests or live transaction.
+ */
 type paymentObjectImp struct {
 	ApiKey       string   `json:"api_key"`
 	CallBack     string   `json:"callback_url"`
@@ -47,7 +47,6 @@ type paymentObjectImp struct {
  * @reoccuring - a bool value to set if a card should always be charged i.e a subscription plan.
  */
 func (p paymentObjectImp) Initiate(amount float64, currency, ref string, customer map[string]string, meta any, reoccuring bool) (map[string]any, error) {
-	// todo: write a private method to verify input
 	if customer == nil {
 		return nil, errors.New("customer map must be passed")
 	}
@@ -82,7 +81,7 @@ func (p paymentObjectImp) Initiate(amount float64, currency, ref string, custome
 		body["metadata"] = meta
 	}
 
-	res, err := utils.MakeRequest(body, p.completeUrl("transaction/initiate"), p.ApiKey)
+	res, err := utils.MakeRequest(body, utils.CompleteUrl("transaction/initiate", p.live), p.ApiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -105,14 +104,3 @@ func (paymentObjectImp) convert(amount float64) int {
  * @endPoint - the endpoint to add to the base url
  * returns - the completed url
  */
-func (p paymentObjectImp) completeUrl(endPoint string) string {
-	const (
-		testBase = "https://sandbox-api-d.squadco.com/"
-		liveBase = "https://api-d.squadco.com/"
-	)
-
-	if p.live {
-		return liveBase + endPoint
-	}
-	return testBase + endPoint
-}
