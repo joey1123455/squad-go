@@ -7,11 +7,25 @@
 
 package squad
 
-import "github.com/joey1123455/squad-go/utils"
+import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/joey1123455/squad-go/utils"
+)
+
+const (
+	getWebhookEndpoint             string = "virtual-account/webhook/logs"
+	createBusinessVAEndpoint       string = "virtual-account/business"
+	createCustomerVAEndpoint       string = "virtual-account"
+	queryVirtualAccHistoryEndpoint string = "virtual-account/customer/transactions/"
+)
 
 // an interface exposing virtual accounts of either customer or bussiness model
 type VirtualAccount interface {
 	Initiate() (map[string]any, error)
+	QueryVirtualAccHistory() (map[string]any, error)
 }
 
 /*
@@ -71,7 +85,35 @@ type customerVA struct {
 }
 
 /*
- * Initiate - makes a request to the create virtual accounts end point
+ * MissedWebHookNotifications - used to get a list of missed transaction notifications to virtual accounts.
+ * @apiKey - string representing api key
+ * @live - a bool representing if the object is being used for tests or live transaction.
+ * @page - the page to return.
+ * @perPage - amount to return per page.
+ */
+func MissedWebHookNotifications(apiKey string, live bool, page, perPage int) (map[string]any, error) {
+	// input validation
+	switch {
+	case page < 1:
+		return nil, errors.New("page must have a value greater then 0")
+	case perPage < 1:
+		return nil, errors.New("perPage must have a value greater then 0")
+	case !live && !strings.HasPrefix(apiKey, "sandbox_sk"):
+		return nil, errors.New("api key for test account must start with 'sandbox_sk'")
+	case live && !strings.HasPrefix(apiKey, "sk"):
+		return nil, errors.New("api key for account must start with 'sk'")
+	}
+
+	return utils.MakeGetRequest(map[string]string{"page": fmt.Sprint(page), "perPage": fmt.Sprint(perPage)}, utils.CompleteUrl(getWebhookEndpoint, live), apiKey)
+}
+
+// TODO: implement delete missed web hook last nah zxenox go run this one.
+/*
+ * DeleteMissedWebHook - handles deletion of missed web hooks
+ */
+
+/*
+ * Initiate - makes a request to the create business virtual accounts end point
  */
 func (bv bussinessVA) Initiate() (map[string]any, error) {
 	body := map[string]any{
@@ -81,9 +123,19 @@ func (bv bussinessVA) Initiate() (map[string]any, error) {
 		"mobile_num":          bv.mobileNo,
 		"beneficiary_account": bv.beneficiaryAcc,
 	}
-	return utils.MakeRequest(body, utils.CompleteUrl("virtual-account/business", bv.live), bv.apiKey)
+	return utils.MakeRequest(body, utils.CompleteUrl(createBusinessVAEndpoint, bv.live), bv.apiKey)
 }
 
+/*
+ * QueryVirtualAccHistory - gets a list of all transactions by a virtual account
+ */
+func (bv bussinessVA) QueryVirtualAccHistory() (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(queryVirtualAccHistoryEndpoint+bv.customerID, bv.live), bv.apiKey)
+}
+
+/*
+ * Initiate - makes a request to the create customer virtual accounts end point
+ */
 func (cv customerVA) Initiate() (map[string]any, error) {
 	body := map[string]any{
 		"bvn":                 cv.bvn,
@@ -97,5 +149,13 @@ func (cv customerVA) Initiate() (map[string]any, error) {
 		"gender":              cv.gender,
 		"beneficiary_account": cv.beneficiaryAcc,
 	}
-	return utils.MakeRequest(body, utils.CompleteUrl("virtual-account", cv.live), cv.apiKey)
+	return utils.MakeRequest(body, utils.CompleteUrl(createCustomerVAEndpoint, cv.live), cv.apiKey)
+}
+
+/*
+ * QueryVirtualAccHistory - gets a list of all transactions by a virtual account
+ */
+func (cv customerVA) QueryVirtualAccHistory() (map[string]any, error) {
+
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(queryVirtualAccHistoryEndpoint+cv.customerID, cv.live), cv.apiKey)
 }

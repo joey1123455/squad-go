@@ -15,6 +15,10 @@ import (
 	"github.com/joey1123455/squad-go/utils"
 )
 
+const (
+	initiatePaymentEndPoint string = "transaction/initiate"
+)
+
 // A interface exposing a private squad objects and its public methods.
 type PaymentObject interface {
 	Initiate(amount float64, currency, ref string, customer map[string]string, metaData any, reocure bool) (map[string]any, error)
@@ -81,7 +85,7 @@ func (p paymentObjectImp) Initiate(amount float64, currency, ref string, custome
 		body["metadata"] = meta
 	}
 
-	res, err := utils.MakeRequest(body, utils.CompleteUrl("transaction/initiate", p.live), p.ApiKey)
+	res, err := utils.MakeRequest(body, utils.CompleteUrl(initiatePaymentEndPoint, p.live), p.ApiKey)
 	if err != nil {
 		return nil, err
 	}
