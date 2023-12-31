@@ -60,3 +60,14 @@ func IsValidDateOfBirth(dateOfBirth string) bool {
 	// Check for parsing errors and validate the date
 	return err == nil && parsedDate.Before(time.Now())
 }
+
+func IsValidSesId(bvn string) bool {
+	// Define the regex pattern for BVN
+	pattern := `^\d{30}$`
+
+	// Compile the regex
+	regex := regexp.MustCompile(pattern)
+
+	// Match the string against the regex
+	return regex.MatchString(bvn)
+}

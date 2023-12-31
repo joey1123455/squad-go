@@ -13,13 +13,17 @@ import (
 	"strings"
 
 	"github.com/joey1123455/squad-go/utils"
+	"golang.org/x/exp/slices"
 )
 
 const (
-	getWebhookEndpoint             string = "virtual-account/webhook/logs"
-	createBusinessVAEndpoint       string = "virtual-account/business"
-	createCustomerVAEndpoint       string = "virtual-account"
-	queryVirtualAccHistoryEndpoint string = "virtual-account/customer/transactions/"
+	// endpoints
+	getWebhookEndpoint                      string = "virtual-account/webhook/logs"
+	createBusinessVAEndpoint                string = "virtual-account/business"
+	createCustomerVAEndpoint                string = "virtual-account"
+	queryVirtualAccHistoryEndpoint          string = "virtual-account/customer/transactions/"
+	queryMerchantHistoryEndpoint            string = "virtual-account/merchant/transactions"
+	queryMerchantHistoryWithFiltersEndpoint string = "virtual-account/merchant/transactions/all"
 )
 
 // an interface exposing virtual accounts of either customer or bussiness model
@@ -111,6 +115,68 @@ func MissedWebHookNotifications(apiKey string, live bool, page, perPage int) (ma
 /*
  * DeleteMissedWebHook - handles deletion of missed web hooks
  */
+
+/*
+ * QueryMerchantHistory - used to get all virtual account transactions registered under an api key
+ * @apiKey - merchants api key
+ * @live - bool to represent if a live or sandbox account
+ */
+func QueryMerchantVirtualAccHistory(apiKey string, live bool) (map[string]any, error) {
+	// input validation
+	switch {
+	case !live && !strings.HasPrefix(apiKey, "sandbox_sk"):
+		return nil, errors.New("api key for test account must start with 'sandbox_sk'")
+	case live && !strings.HasPrefix(apiKey, "sk"):
+		return nil, errors.New("api key for account must start with 'sk'")
+	}
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(queryMerchantHistoryEndpoint, live), apiKey)
+}
+
+/*
+ * QueryMerchantHistoryFilters - used to get all virtual account transactions registered under an api key with the use of filters
+ * @apiKey - merchants api key
+ * @live - bool to represent if a live or sandbox account
+ * @filters - the filters to use {
+ * 		@page - the page to return.
+ * 		@perPage - amount to return per page.
+ * 		@virtualAccount - used to return on values from this account no
+ * 		@customerIdentifier - used to return values from this customer id
+ * 		@startDate - used to specify which date transactions should start from
+ * 		@endDate - used to specify which date transactions should stop
+ * 		@transactionReference - used to return a transaction ref
+ * 		@session_id - used to return all NIP transactions
+ * 		@dir - takes to values return in "ASC" or "DESC"
+ *	}
+ */
+func QueryMerchantHistoryFilters(apiKey string, live bool, filters map[string]string) (map[string]any, error) {
+	options := []string{
+		"page", "perPage", "dir", "virtualAccount",
+		"customerIdentifier", "startDate", "endDate",
+		"transactionReference", "session_id",
+	}
+	for k, v := range filters {
+		there := slices.Contains(options, k)
+		switch {
+		case !there:
+			delete(filters, k)
+		case v == "":
+			delete(filters, k)
+		case k == "dir":
+			filters[k] = strings.ToUpper(v)
+		}
+	}
+
+	//input validation
+	switch {
+	case !live && !strings.HasPrefix(apiKey, "sandbox_sk"):
+		return nil, errors.New("api key for test account must start with 'sandbox_sk'")
+	case live && !strings.HasPrefix(apiKey, "sk"):
+		return nil, errors.New("api key for account must start with 'sk'")
+	case len(filters) == 0:
+		return nil, errors.New("if no filters are provided make use of the QueryMerchantHistory function instead")
+	}
+	return utils.MakeGetRequest(filters, utils.CompleteUrl(queryMerchantHistoryWithFiltersEndpoint, live), apiKey)
+}
 
 /*
  * Initiate - makes a request to the create business virtual accounts end point

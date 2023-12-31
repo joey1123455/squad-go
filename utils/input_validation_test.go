@@ -160,3 +160,28 @@ func Test_IsValidDateOfBirth(t *testing.T) {
 		})
 	}
 }
+
+func Test_IsValidSesId(t *testing.T) {
+	testCases := []struct {
+		bvn            string
+		expectedResult bool
+	}{
+		{"891234567890123456789012345678", true},
+		{"2451879320654187032918475032198745032", false},
+		{"K7bFg2pXqL4sU1rM3wZ5yD8vA9cO6hJ0", false},
+		{"4819260357142098563725189402", false},
+		{"543210987654321098765432109876", true},
+		{"9876543210987654321098765", false},
+		{"9876543210a", false},
+		{"8923456712034567890123456789012", false},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.bvn, func(t *testing.T) {
+			result := IsValidSesId(tc.bvn)
+			if result != tc.expectedResult {
+				t.Errorf("Expected isValidSesId(%s) to be %t, but got %t", tc.bvn, tc.expectedResult, result)
+			}
+		})
+	}
+}
