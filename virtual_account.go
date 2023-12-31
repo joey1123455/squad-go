@@ -24,12 +24,18 @@ const (
 	queryVirtualAccHistoryEndpoint          string = "virtual-account/customer/transactions/"
 	queryMerchantHistoryEndpoint            string = "virtual-account/merchant/transactions"
 	queryMerchantHistoryWithFiltersEndpoint string = "virtual-account/merchant/transactions/all"
+	getMerchantVirtualAccEndpoint           string = "virtual-account/merchant/accounts"
+	simultePaymentEndpoint                  string = "virtual-account/simulate/payment"
+	virtualAccDetailsEndpoint               string = "virtual-account/customer/"
+	virtualAccDetailsUsingIdEndpoint        string = "virtual-account/"
 )
 
 // an interface exposing virtual accounts of either customer or bussiness model
 type VirtualAccount interface {
 	Initiate() (map[string]any, error)
 	QueryVirtualAccHistory() (map[string]any, error)
+	AccountDetails() (map[string]any, error)
+	AccountDetailsUsingId() (map[string]any, error)
 }
 
 /*
@@ -43,17 +49,19 @@ type VirtualAccount interface {
  * @apiKey - string representing api key
  * @accountName - string representing the original squad account name
  * @bvn - string representing the bussiness bvn associated to the provided bvn
-* @live - a bool representing if the object is being used for tests or live transaction.
-*/
+ * @live - a bool representing if the object is being used for tests or live transaction.
+ * @virtualAccNo - the virtual account no provided by squad
+ */
 type bussinessVA struct {
-	customerID     string
-	bussinessName  string
-	mobileNo       string
-	beneficiaryAcc string
-	apiKey         string
-	accountName    string
-	bvn            string
-	live           bool
+	CustomerID     string
+	BussinessName  string
+	MobileNo       string
+	BeneficiaryAcc string
+	ApiKey         string
+	AccountName    string
+	Bvn            string
+	Live           bool
+	VirtualAccNo   string
 }
 
 /*
@@ -71,21 +79,48 @@ type bussinessVA struct {
  * @apiKey - string representing api key
  * @accountName - string representing the original squad account name
  * @live - a bool representing if the object is being used for tests or live transaction.
+ * @virtualAccNo - the virtual account no provided by squad
  */
 type customerVA struct {
-	customerID     string
-	firstName      string
-	lastName       string
-	mobileNo       string
-	email          string
-	bvn            string
-	dob            string
-	address        string
-	gender         string
-	beneficiaryAcc string
-	apiKey         string
-	accountName    string
-	live           bool
+	CustomerID     string
+	FirstName      string
+	LastName       string
+	MobileNo       string
+	Email          string
+	Bvn            string
+	Dob            string
+	Address        string
+	Gender         string
+	BeneficiaryAcc string
+	ApiKey         string
+	AccountName    string
+	Live           bool
+	VirtualAccNo   string
+}
+
+/*
+ * TestPaymentToVA - used to simulate a payment to a virtual account for testing
+ * @apiKey - string representing api key
+ * @acc - account number.
+ * @amount - simulated payment amount.
+ * @live - a bool representing if the object is being used for tests or live transaction.
+ */
+func TestPaymentToVA(apiKey, acc string, amount float64, live bool) (map[string]any, error) {
+	switch {
+	case !utils.IsValidNigerianAccountNumber(acc):
+		return nil, errors.New("invalid account no")
+	case amount < 1:
+		return nil, errors.New("amount must be greater then 0")
+	case !live && !strings.HasPrefix(apiKey, "sandbox_sk"):
+		return nil, errors.New("api key for test account must start with 'sandbox_sk'")
+	case live && !strings.HasPrefix(apiKey, "sk"):
+		return nil, errors.New("api key for account must start with 'sk'")
+	}
+	body := map[string]any{
+		"virtual_account_number": acc,
+		"amount":                 fmt.Sprint(amount),
+	}
+	return utils.MakeRequest(body, utils.CompleteUrl(simultePaymentEndpoint, live), apiKey)
 }
 
 /*
@@ -155,9 +190,8 @@ func QueryMerchantHistoryFilters(apiKey string, live bool, filters map[string]st
 		"transactionReference", "session_id",
 	}
 	for k, v := range filters {
-		there := slices.Contains(options, k)
 		switch {
-		case !there:
+		case !slices.Contains(options, k):
 			delete(filters, k)
 		case v == "":
 			delete(filters, k)
@@ -179,49 +213,127 @@ func QueryMerchantHistoryFilters(apiKey string, live bool, filters map[string]st
 }
 
 /*
+ * GetMerchantVirtualAcc - returns a list of all merchants virtual accounts
+ * @apiKey - merchants api key
+ * @live - bool to represent if a live or sandbox account
+ */
+func GetMerchantVirtualAcc(apiKey string, live bool) (map[string]any, error) {
+	switch {
+	case !live && !strings.HasPrefix(apiKey, "sandbox_sk"):
+		return nil, errors.New("api key for test account must start with 'sandbox_sk'")
+	case live && !strings.HasPrefix(apiKey, "sk"):
+		return nil, errors.New("api key for account must start with 'sk'")
+	}
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(getMerchantVirtualAccEndpoint, live), apiKey)
+}
+
+// *bussinessVA reciever methods
+
+/*
  * Initiate - makes a request to the create business virtual accounts end point
  */
-func (bv bussinessVA) Initiate() (map[string]any, error) {
+func (bv *bussinessVA) Initiate() (res map[string]any, err error) {
 	body := map[string]any{
-		"bvn":                 bv.bvn,
-		"business_name":       bv.bussinessName,
-		"customer_identifier": bv.customerID,
-		"mobile_num":          bv.mobileNo,
-		"beneficiary_account": bv.beneficiaryAcc,
+		"bvn":                 bv.Bvn,
+		"business_name":       bv.BussinessName,
+		"customer_identifier": bv.CustomerID,
+		"mobile_num":          bv.MobileNo,
+		"beneficiary_account": bv.BeneficiaryAcc,
 	}
-	return utils.MakeRequest(body, utils.CompleteUrl(createBusinessVAEndpoint, bv.live), bv.apiKey)
+	res, err = utils.MakeRequest(body, utils.CompleteUrl(createBusinessVAEndpoint, bv.Live), bv.ApiKey)
+	if err != nil {
+		return
+	}
+	if err != nil {
+		return
+	}
+	data, ok := res["data"].(map[string]any)
+	if !ok {
+		return
+	}
+	virtualAccountNumber, ok := data["virtual_account_number"].(string)
+	if !ok {
+		return
+	}
+	bv.VirtualAccNo = virtualAccountNumber
+
+	return
 }
 
 /*
  * QueryVirtualAccHistory - gets a list of all transactions by a virtual account
  */
-func (bv bussinessVA) QueryVirtualAccHistory() (map[string]any, error) {
-	return utils.MakeGetRequest(nil, utils.CompleteUrl(queryVirtualAccHistoryEndpoint+bv.customerID, bv.live), bv.apiKey)
+func (bv *bussinessVA) QueryVirtualAccHistory() (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(queryVirtualAccHistoryEndpoint+bv.CustomerID, bv.Live), bv.ApiKey)
 }
+
+/*
+ * AccountDetails - returns virtual account details
+ */
+func (bv *bussinessVA) AccountDetails() (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(virtualAccDetailsEndpoint+bv.VirtualAccNo, bv.Live), bv.ApiKey)
+}
+
+/*
+ * AccountDetailsUsingId - returns virtual account details
+ */
+func (bv *bussinessVA) AccountDetailsUsingId() (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(virtualAccDetailsUsingIdEndpoint+bv.CustomerID, bv.Live), bv.ApiKey)
+}
+
+// *customerVA reciever methods
 
 /*
  * Initiate - makes a request to the create customer virtual accounts end point
  */
-func (cv customerVA) Initiate() (map[string]any, error) {
+func (cv *customerVA) Initiate() (res map[string]any, err error) {
 	body := map[string]any{
-		"bvn":                 cv.bvn,
-		"first_name":          cv.firstName,
-		"customer_identifier": cv.customerID,
-		"last_name":           cv.lastName,
-		"mobile_num":          cv.mobileNo,
-		"email":               cv.email,
-		"dob":                 cv.dob,
-		"address":             cv.address,
-		"gender":              cv.gender,
-		"beneficiary_account": cv.beneficiaryAcc,
+		"bvn":                 cv.Bvn,
+		"first_name":          cv.FirstName,
+		"customer_identifier": cv.CustomerID,
+		"last_name":           cv.LastName,
+		"mobile_num":          cv.MobileNo,
+		"email":               cv.Email,
+		"dob":                 cv.Dob,
+		"address":             cv.Address,
+		"gender":              cv.Gender,
+		"beneficiary_account": cv.BeneficiaryAcc,
 	}
-	return utils.MakeRequest(body, utils.CompleteUrl(createCustomerVAEndpoint, cv.live), cv.apiKey)
+	res, err = utils.MakeRequest(body, utils.CompleteUrl(createCustomerVAEndpoint, cv.Live), cv.ApiKey)
+	if err != nil {
+		return
+	}
+	data, ok := res["data"].(map[string]any)
+	if !ok {
+		return
+	}
+	virtualAccountNumber, ok := data["virtual_account_number"].(string)
+	if !ok {
+		return
+	}
+	cv.VirtualAccNo = virtualAccountNumber
+
+	return
 }
 
 /*
  * QueryVirtualAccHistory - gets a list of all transactions by a virtual account
  */
-func (cv customerVA) QueryVirtualAccHistory() (map[string]any, error) {
+func (cv *customerVA) QueryVirtualAccHistory() (map[string]any, error) {
 
-	return utils.MakeGetRequest(nil, utils.CompleteUrl(queryVirtualAccHistoryEndpoint+cv.customerID, cv.live), cv.apiKey)
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(queryVirtualAccHistoryEndpoint+cv.CustomerID, cv.Live), cv.ApiKey)
+}
+
+/*
+ * AccountDetails - returns virtual account details
+ */
+func (cv *customerVA) AccountDetails() (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(virtualAccDetailsEndpoint+cv.VirtualAccNo, cv.Live), cv.ApiKey)
+}
+
+/*
+ * AccountDetailsUsingId - returns virtual account details
+ */
+func (cv *customerVA) AccountDetailsUsingId() (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(virtualAccDetailsUsingIdEndpoint+cv.CustomerID, cv.Live), cv.ApiKey)
 }

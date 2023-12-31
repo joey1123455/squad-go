@@ -102,14 +102,14 @@ func (sba squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (V
 	}
 
 	return &bussinessVA{
-		customerID:     id,
-		bussinessName:  sba.parseVirtualAccName(name),
-		mobileNo:       no,
-		apiKey:         sba.ApiKey,
-		bvn:            bvn,
-		beneficiaryAcc: acc,
-		accountName:    sba.AccountName,
-		live:           sba.Live,
+		CustomerID:     id,
+		BussinessName:  sba.parseVirtualAccName(name),
+		MobileNo:       no,
+		ApiKey:         sba.ApiKey,
+		Bvn:            bvn,
+		BeneficiaryAcc: acc,
+		AccountName:    sba.AccountName,
+		Live:           sba.Live,
 	}, nil
 }
 
@@ -153,19 +153,19 @@ func (sba squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, m
 	}
 
 	return &customerVA{
-		customerID:     customerID,
-		firstName:      sba.parseVirtualAccName(firstName),
-		lastName:       lastName,
-		mobileNo:       mobileNo,
-		email:          email,
-		bvn:            bvn,
-		dob:            dob,
-		address:        address,
-		gender:         gender,
-		beneficiaryAcc: beneficiaryAcc,
-		apiKey:         sba.ApiKey,
-		accountName:    sba.AccountName,
-		live:           sba.Live,
+		CustomerID:     customerID,
+		FirstName:      sba.parseVirtualAccName(firstName),
+		LastName:       lastName,
+		MobileNo:       mobileNo,
+		Email:          email,
+		Bvn:            bvn,
+		Dob:            dob,
+		Address:        address,
+		Gender:         gender,
+		BeneficiaryAcc: beneficiaryAcc,
+		ApiKey:         sba.ApiKey,
+		AccountName:    sba.AccountName,
+		Live:           sba.Live,
 	}, nil
 
 }
