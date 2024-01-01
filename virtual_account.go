@@ -17,6 +17,10 @@ import (
 )
 
 const (
+	// methods
+	post  string = "POST"
+	patch string = "PATCH"
+
 	// endpoints
 	getWebhookEndpoint                      string = "virtual-account/webhook/logs"
 	createBusinessVAEndpoint                string = "virtual-account/business"
@@ -28,6 +32,8 @@ const (
 	simultePaymentEndpoint                  string = "virtual-account/simulate/payment"
 	virtualAccDetailsEndpoint               string = "virtual-account/customer/"
 	virtualAccDetailsUsingIdEndpoint        string = "virtual-account/"
+	updateAccountEndpoint                   string = "virtual-account/update/beneficiary/account"
+	simPaymentEndpoint                      string = "virtual-account/simulate/payment"
 )
 
 // an interface exposing virtual accounts of either customer or bussiness model
@@ -36,6 +42,8 @@ type VirtualAccount interface {
 	QueryVirtualAccHistory() (map[string]any, error)
 	AccountDetails() (map[string]any, error)
 	AccountDetailsUsingId() (map[string]any, error)
+	UpdateAccount(beneficiaryAccount string) (map[string]any, error)
+	SimulatePayment(amount int) (map[string]any, error)
 }
 
 /*
@@ -120,7 +128,7 @@ func TestPaymentToVA(apiKey, acc string, amount float64, live bool) (map[string]
 		"virtual_account_number": acc,
 		"amount":                 fmt.Sprint(amount),
 	}
-	return utils.MakeRequest(body, utils.CompleteUrl(simultePaymentEndpoint, live), apiKey)
+	return utils.MakeRequest(body, utils.CompleteUrl(simultePaymentEndpoint, live), apiKey, post)
 }
 
 /*
@@ -240,7 +248,7 @@ func (bv *bussinessVA) Initiate() (res map[string]any, err error) {
 		"mobile_num":          bv.MobileNo,
 		"beneficiary_account": bv.BeneficiaryAcc,
 	}
-	res, err = utils.MakeRequest(body, utils.CompleteUrl(createBusinessVAEndpoint, bv.Live), bv.ApiKey)
+	res, err = utils.MakeRequest(body, utils.CompleteUrl(createBusinessVAEndpoint, bv.Live), bv.ApiKey, post)
 	if err != nil {
 		return
 	}
@@ -281,6 +289,34 @@ func (bv *bussinessVA) AccountDetailsUsingId() (map[string]any, error) {
 	return utils.MakeGetRequest(nil, utils.CompleteUrl(virtualAccDetailsUsingIdEndpoint+bv.CustomerID, bv.Live), bv.ApiKey)
 }
 
+/*
+ * UpdateAccount - updates the original account for a virtual account
+ * @beneficiaryAccount - 10 digit valid NUBAN account number
+ */
+func (bv *bussinessVA) UpdateAccount(beneficiaryAccount string) (map[string]any, error) {
+	switch {
+	case !utils.IsValidNigerianAccountNumber(beneficiaryAccount):
+		return nil, errors.New("invalid account no")
+	}
+	body := map[string]any{
+		"beneficiary_account":    beneficiaryAccount,
+		"virtual_account_number": bv.VirtualAccNo,
+	}
+	return utils.MakeRequest(body, utils.CompleteUrl(updateAccountEndpoint, bv.Live), bv.ApiKey, patch)
+}
+
+/*
+ * SimulatePayment - simulates a payment to a virtual account no
+ * @amount - the amount to be paid
+ */
+func (bv *bussinessVA) SimulatePayment(amount int) (map[string]any, error) {
+	body := map[string]any{
+		"virtual_account_number": bv.VirtualAccNo,
+		"amount":                 fmt.Sprint(amount),
+	}
+	return utils.MakeRequest(body, utils.CompleteUrl(simPaymentEndpoint, bv.Live), bv.ApiKey, post)
+}
+
 // *customerVA reciever methods
 
 /*
@@ -299,7 +335,7 @@ func (cv *customerVA) Initiate() (res map[string]any, err error) {
 		"gender":              cv.Gender,
 		"beneficiary_account": cv.BeneficiaryAcc,
 	}
-	res, err = utils.MakeRequest(body, utils.CompleteUrl(createCustomerVAEndpoint, cv.Live), cv.ApiKey)
+	res, err = utils.MakeRequest(body, utils.CompleteUrl(createCustomerVAEndpoint, cv.Live), cv.ApiKey, post)
 	if err != nil {
 		return
 	}
@@ -336,4 +372,33 @@ func (cv *customerVA) AccountDetails() (map[string]any, error) {
  */
 func (cv *customerVA) AccountDetailsUsingId() (map[string]any, error) {
 	return utils.MakeGetRequest(nil, utils.CompleteUrl(virtualAccDetailsUsingIdEndpoint+cv.CustomerID, cv.Live), cv.ApiKey)
+}
+
+/*
+ * UpdateAccount - updates the original account for a virtual account
+ * @beneficiaryAccount - 10 digit valid NUBAN account number
+ */
+func (cv *customerVA) UpdateAccount(beneficiaryAccount string) (map[string]any, error) {
+	switch {
+	case !utils.IsValidNigerianAccountNumber(beneficiaryAccount):
+		return nil, errors.New("invalid account no")
+	}
+	body := map[string]any{
+		"beneficiary_account":    beneficiaryAccount,
+		"virtual_account_number": cv.VirtualAccNo,
+	}
+	return utils.MakeRequest(body, utils.CompleteUrl(updateAccountEndpoint, cv.Live), cv.ApiKey, patch)
+}
+
+/*
+ * SimulatePayment - simulates a payment to a virtual account no
+ * @amount - the amount to be paid
+ */
+func (cv *customerVA) SimulatePayment(amount int) (map[string]any, error) {
+
+	body := map[string]any{
+		"virtual_account_number": cv.VirtualAccNo,
+		"amount":                 fmt.Sprint(amount),
+	}
+	return utils.MakeRequest(body, utils.CompleteUrl(simPaymentEndpoint, cv.Live), cv.ApiKey, post)
 }

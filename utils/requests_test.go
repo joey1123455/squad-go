@@ -30,7 +30,7 @@ func Test_MakeRequest_Successful(t *testing.T) {
 	apiKey := "test-token"
 
 	// Call the function
-	result, err := MakeRequest(body, url, apiKey)
+	result, err := MakeRequest(body, url, apiKey, "post")
 
 	// Check assertions
 	assert.NoError(t, err)
@@ -47,7 +47,7 @@ func TestMakeRequest_ErrorHandling(t *testing.T) {
 	apiKey := "your_api_key"
 
 	// Call the function
-	result, err := MakeRequest(body, url, apiKey)
+	result, err := MakeRequest(body, url, apiKey, "post")
 
 	// Check assertions for error
 	assert.Error(t, err)

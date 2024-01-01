@@ -474,3 +474,179 @@ func Test_customerVA_AccountDetailsUsingId(t *testing.T) {
 	assert.Equal(t, true, res["success"])
 	assert.Equal(t, float64(200), res["status"])
 }
+
+func Test_customerVA_UpdateAccount(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	first := "ibrahim"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village ATBU"
+	gender := "1"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	accNo1 := "1234587891"
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.UpdateAccount(accNo1)
+	assert.Nil(t, err)
+	t.Log(res)
+	assert.Equal(t, true, res["success"])
+	assert.Equal(t, float64(200), res["status"])
+}
+
+func Test_customerVA_UpdateAccount_wrong_input_(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	first := "ibrahim"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village ATBU"
+	gender := "1"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	accNo1 := "123458789451"
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.UpdateAccount(accNo1)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid account no")
+}
+
+func Test_bussinessVA_UpdateAccount(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	vAName := "james cord"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	accNo1 := "1254567891"
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewBussinessVirtualAcc(id, vAName, no, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.UpdateAccount(accNo1)
+	assert.Nil(t, err)
+	assert.Equal(t, true, res["success"])
+	assert.Equal(t, float64(200), res["status"])
+}
+
+func Test_bussinessVA_UpdateAccount_wrong_input_acc_no(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	vAName := "james cord"
+	no := "08018994541"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	accNo1 := "125467891"
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewBussinessVirtualAcc(id, vAName, no, accNo, bvn)
+	t.Log(t, err)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.UpdateAccount(accNo1)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid account no")
+}
+
+func Test_bussinessVA_SimulatePayment(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	vAName := "james cord"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	amount := 100
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewBussinessVirtualAcc(id, vAName, no, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.SimulatePayment(amount)
+	assert.Nil(t, err)
+	t.Log(res)
+	assert.NotNil(t, res)
+	assert.Equal(t, true, res["success"])
+	assert.Equal(t, float64(200), res["status"])
+}
+
+func Test_customerVA_SimulatePayment(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	first := "ibrahim"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village ATBU"
+	gender := "1"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	amount := 100
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.SimulatePayment(amount)
+	assert.Nil(t, err)
+	t.Log(res)
+	assert.Equal(t, true, res["success"])
+	assert.Equal(t, float64(200), res["status"])
+}

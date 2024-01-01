@@ -103,7 +103,7 @@ func (sba squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (V
 
 	return &bussinessVA{
 		CustomerID:     id,
-		BussinessName:  sba.parseVirtualAccName(name),
+		BussinessName:  sba.parseVirtualAccName(name, 1),
 		MobileNo:       no,
 		ApiKey:         sba.ApiKey,
 		Bvn:            bvn,
@@ -154,7 +154,7 @@ func (sba squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, m
 
 	return &customerVA{
 		CustomerID:     customerID,
-		FirstName:      sba.parseVirtualAccName(firstName),
+		FirstName:      sba.parseVirtualAccName(firstName, 2),
 		LastName:       lastName,
 		MobileNo:       mobileNo,
 		Email:          email,
@@ -173,8 +173,11 @@ func (sba squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, m
 /*
  * parsedVirtualAccName - combines the customer name with the bussines name for virtual account creation
  * @customerName - string representing customers name for a virtual account
+ * @accType - string account type 1 for bussiness, 2 for customer
  */
-func (sba squadBaseACC) parseVirtualAccName(customerName string) string {
-	parts := strings.Split(sba.AccountName, " ")
-	return parts[0] + "-" + customerName
+func (sba squadBaseACC) parseVirtualAccName(customerName string, accType int) string {
+	if accType == 1 {
+		return sba.AccountName + "-" + customerName
+	}
+	return sba.AccountName + "- " + customerName
 }

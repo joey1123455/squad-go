@@ -105,22 +105,22 @@ func Test_squadBaseACC_parsedVirtualAccName(t *testing.T) {
 	_ = godotenv.Load()
 	apiKey := os.Getenv("API_KEY")
 	url := "https://calback/correct.com"
-	name := "test bussines"
+	name := "test bussiness"
 	live := false
 	customerName := "Joseph Folayan"
 	squad, err := NewSquadObj(apiKey, url, name, live)
 	assert.Nil(t, err)
 	squadImp := squad.(*squadBaseACC)
-	res := squadImp.parseVirtualAccName(customerName)
+	res := squadImp.parseVirtualAccName(customerName, 1)
 
-	assert.Equal(t, "test-Joseph Folayan", res)
+	assert.Equal(t, "test bussiness-Joseph Folayan", res)
 
 	name1 := "test"
 	customerName1 := "James Muhammed"
 	squad1, err := NewSquadObj(apiKey, url, name1, live)
 	assert.Nil(t, err)
 	squadImp1 := squad1.(*squadBaseACC)
-	res1 := squadImp1.parseVirtualAccName(customerName1)
+	res1 := squadImp1.parseVirtualAccName(customerName1, 1)
 	assert.Equal(t, "test-James Muhammed", res1)
 }
 
@@ -136,7 +136,7 @@ func Test_squadBaseACC_NewBussinessVirtualAcc_success(t *testing.T) {
 	accNo := "1234567891"
 	bvn := "12345678911"
 	squad, err := NewSquadObj(apiKey, url, name, live)
-	expectedName := squad.(*squadBaseACC).parseVirtualAccName(vAName)
+	expectedName := squad.(*squadBaseACC).parseVirtualAccName(vAName, 1)
 	assert.Nil(t, err)
 	virAcc, err := squad.NewBussinessVirtualAcc(id, vAName, no, accNo, bvn)
 	assert.Nil(t, err)
@@ -265,7 +265,7 @@ func Test_NewCustomerVirtualAcc_success(t *testing.T) {
 	accNo := "1234567291"
 	bvn := "12345678911"
 	squad, err := NewSquadObj(apiKey, url, name, live)
-	expectedName := squad.(*squadBaseACC).parseVirtualAccName(first)
+	expectedName := squad.(*squadBaseACC).parseVirtualAccName(first, 2)
 	assert.Nil(t, err)
 	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
 	assert.Nil(t, err)

@@ -4,19 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
-func MakeRequest(body map[string]any, url, key string) (map[string]any, error) {
+func MakeRequest(body map[string]any, url, key, method string) (map[string]any, error) {
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return nil, err
 	}
 
 	// Create a new request with the JSON body
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(strings.ToUpper(method), url, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -33,7 +33,7 @@ func MakeRequest(body map[string]any, url, key string) (map[string]any, error) {
 	}
 	defer response.Body.Close()
 
-	resBody, err := ioutil.ReadAll(response.Body)
+	resBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		return nil, err
 	}

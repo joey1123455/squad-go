@@ -85,7 +85,7 @@ func (p paymentObjectImp) Initiate(amount float64, currency, ref string, custome
 		body["metadata"] = meta
 	}
 
-	res, err := utils.MakeRequest(body, utils.CompleteUrl(initiatePaymentEndPoint, p.live), p.ApiKey)
+	res, err := utils.MakeRequest(body, utils.CompleteUrl(initiatePaymentEndPoint, p.live), p.ApiKey, post)
 	if err != nil {
 		return nil, err
 	}
