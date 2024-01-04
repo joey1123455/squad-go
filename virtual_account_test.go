@@ -170,6 +170,38 @@ func Test_MissedWebHookNotifications_wrong_input_page_and_perPage(t *testing.T) 
 	assert.EqualError(t, err1, "perPage must have a value greater then 0")
 }
 
+func Test_DeleteMissedWebHookNotifications_success(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	live := false
+
+	res, err := DeleteMissedWebHookNotifications(apiKey, "ccghetyeh22", live)
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+}
+
+func Test_DeleteMissedWebHookNotifications_wrong_input_live_api_key(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	live := true
+
+	res, err := DeleteMissedWebHookNotifications(apiKey, "ccghetyeh22", live)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "api key for account must start with 'sk'")
+}
+
+func Test_DeleteMissedWebHookNotifications_wrong_input_sandbox_api_key(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("TEST_WRONG_LIVE_API_KEY")
+	live := false
+
+	res, err := DeleteMissedWebHookNotifications(apiKey, "ccghetyeh22", live)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "api key for test account must start with 'sandbox_sk'")
+}
+
 func Test_QueryMerchantVirtualAccHistory_success(t *testing.T) {
 	_ = godotenv.Load()
 	apiKey := os.Getenv("API_KEY")
@@ -649,4 +681,119 @@ func Test_customerVA_SimulatePayment(t *testing.T) {
 	t.Log(res)
 	assert.Equal(t, true, res["success"])
 	assert.Equal(t, float64(200), res["status"])
+}
+
+func Test_customerVA_UpdateBvn(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	first := "ibrahim"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village ATBU"
+	gender := "1"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	newBvn := os.Getenv("BVN")
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	t.Log(t, err)
+	res, err = virAcc.UpdateBvn(newBvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+}
+
+func Test_customerVA_UpdateBvn_wrong_input_bvn(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	first := "ibrahim"
+	last := "james"
+	email := "joeyfolayan5@gmail.com"
+	dob := "10/09/2000"
+	address := "village ATBU"
+	gender := "1"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	newBvn := "235784841607"
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	t.Log(t, err)
+	res, err = virAcc.UpdateBvn(newBvn)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid bvn")
+}
+
+func Test_bussinessVA_UpdateBvn(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	vAName := "james cord"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	newBvn := os.Getenv("BVN")
+	bvn := os.Getenv("BVN")
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewBussinessVirtualAcc(id, vAName, no, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.UpdateBvn(newBvn)
+	assert.Nil(t, err)
+	t.Log(res)
+	assert.NotNil(t, res)
+}
+
+func Test_bussinessVA_UpdateBvn_wrong_input_bvn(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "prince electronics"
+	live := false
+	vAName := "james cord"
+	no := "08018995454"
+	id := "hex11rthyuirjahdu"
+	accNo := "1234567891"
+	bvn := os.Getenv("BVN")
+	newBvn := "235784841607"
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	virAcc, err := squad.NewBussinessVirtualAcc(id, vAName, no, accNo, bvn)
+	assert.Nil(t, err)
+	assert.NotNil(t, virAcc)
+	res, err := virAcc.Initiate()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	res, err = virAcc.UpdateBvn(newBvn)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "invalid bvn")
 }

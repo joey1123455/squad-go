@@ -23,6 +23,7 @@ const (
 
 	// endpoints
 	getWebhookEndpoint                      string = "virtual-account/webhook/logs"
+	deleteWebHookEndpoint                   string = "virtual-account/webhook/logs/"
 	createBusinessVAEndpoint                string = "virtual-account/business"
 	createCustomerVAEndpoint                string = "virtual-account"
 	queryVirtualAccHistoryEndpoint          string = "virtual-account/customer/transactions/"
@@ -34,6 +35,7 @@ const (
 	virtualAccDetailsUsingIdEndpoint        string = "virtual-account/"
 	updateAccountEndpoint                   string = "virtual-account/update/beneficiary/account"
 	simPaymentEndpoint                      string = "virtual-account/simulate/payment"
+	updateBvnEndpoint                       string = "virtual-account/update/bvn"
 )
 
 // an interface exposing virtual accounts of either customer or bussiness model
@@ -44,6 +46,7 @@ type VirtualAccount interface {
 	AccountDetailsUsingId() (map[string]any, error)
 	UpdateAccount(beneficiaryAccount string) (map[string]any, error)
 	SimulatePayment(amount int) (map[string]any, error)
+	UpdateBvn(customerBvn string) (res map[string]any, err error)
 }
 
 /*
@@ -152,6 +155,26 @@ func MissedWebHookNotifications(apiKey string, live bool, page, perPage int) (ma
 	}
 
 	return utils.MakeGetRequest(map[string]string{"page": fmt.Sprint(page), "perPage": fmt.Sprint(perPage)}, utils.CompleteUrl(getWebhookEndpoint, live), apiKey)
+}
+
+/*
+ * DeleteMissedWebHookNotifications - used to get a list of missed transaction notifications to virtual accounts.
+ * @apiKey - string representing api key.
+ * @transactionRef - Unique Transaction Ref that identifies each virtual account and gotten from the retrieved webhook error log
+ * @live - a bool representing if the object is being used for tests or live transaction.
+ */
+func DeleteMissedWebHookNotifications(apiKey, transactionRef string, live bool) (map[string]any, error) {
+	// input validation
+	switch {
+	case transactionRef == "":
+		return nil, errors.New("provide a transaction refrence")
+	case !live && !strings.HasPrefix(apiKey, "sandbox_sk"):
+		return nil, errors.New("api key for test account must start with 'sandbox_sk'")
+	case live && !strings.HasPrefix(apiKey, "sk"):
+		return nil, errors.New("api key for account must start with 'sk'")
+	}
+
+	return utils.MakeDeleteRequest(utils.CompleteUrl(deleteWebHookEndpoint, live), apiKey)
 }
 
 // TODO: implement delete missed web hook last nah zxenox go run this one.
@@ -317,6 +340,32 @@ func (bv *bussinessVA) SimulatePayment(amount int) (map[string]any, error) {
 	return utils.MakeRequest(body, utils.CompleteUrl(simPaymentEndpoint, bv.Live), bv.ApiKey, post)
 }
 
+/*
+ * UpdateBvn - used to update a bvn registered to a virtual account
+ * @customer_bvn
+ */
+func (bv *bussinessVA) UpdateBvn(customerBvn string) (res map[string]any, err error) {
+	switch {
+	case !utils.IsValidNigerianBVN(customerBvn):
+		return nil, errors.New("invalid bvn")
+	}
+	body := map[string]any{
+		"customer_bvn":        customerBvn,
+		"customer_identifier": bv.CustomerID,
+		"phone_number":        bv.MobileNo,
+	}
+	res, err = utils.MakeRequest(body, utils.CompleteUrl(updateBvnEndpoint, bv.Live), bv.ApiKey, patch)
+	data, ok := res["status"].(float64)
+	if !ok {
+		return
+	}
+	if data != float64(200) {
+		return
+	}
+	bv.Bvn = customerBvn
+	return
+}
+
 // *customerVA reciever methods
 
 /*
@@ -401,4 +450,30 @@ func (cv *customerVA) SimulatePayment(amount int) (map[string]any, error) {
 		"amount":                 fmt.Sprint(amount),
 	}
 	return utils.MakeRequest(body, utils.CompleteUrl(simPaymentEndpoint, cv.Live), cv.ApiKey, post)
+}
+
+/*
+ * UpdateBvn - used to update a bvn registered to a virtual account
+ * @customer_bvn
+ */
+func (cv *customerVA) UpdateBvn(customerBvn string) (res map[string]any, err error) {
+	switch {
+	case !utils.IsValidNigerianBVN(customerBvn):
+		return nil, errors.New("invalid bvn")
+	}
+	body := map[string]any{
+		"customer_bvn":        customerBvn,
+		"customer_identifier": cv.CustomerID,
+		"phone_number":        cv.MobileNo,
+	}
+	res, err = utils.MakeRequest(body, utils.CompleteUrl(updateBvnEndpoint, cv.Live), cv.ApiKey, patch)
+	data, ok := res["status"].(float64)
+	if !ok {
+		return
+	}
+	if data != float64(200) {
+		return
+	}
+	cv.Bvn = customerBvn
+	return
 }
