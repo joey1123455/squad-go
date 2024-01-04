@@ -17,11 +17,13 @@ import (
 
 const (
 	initiatePaymentEndPoint string = "transaction/initiate"
+	chargeCardEndpoint      string = "transaction/charge_card"
 )
 
 // A interface exposing a private squad objects and its public methods.
 type PaymentObject interface {
 	Initiate(amount float64, currency, ref string, customer map[string]string, metaData any, reocure bool) (map[string]any, error)
+	ChargeCard(transactionRef, tokenId string, amount float64) (map[string]any, error)
 }
 
 /*
@@ -50,7 +52,7 @@ type paymentObjectImp struct {
  * @meta - an object of additional data used to track payment may be a string.
  * @reoccuring - a bool value to set if a card should always be charged i.e a subscription plan.
  */
-func (p paymentObjectImp) Initiate(amount float64, currency, ref string, customer map[string]string, meta any, reoccuring bool) (map[string]any, error) {
+func (p *paymentObjectImp) Initiate(amount float64, currency, ref string, customer map[string]string, meta any, reoccuring bool) (map[string]any, error) {
 	if customer == nil {
 		return nil, errors.New("customer map must be passed")
 	}
@@ -97,14 +99,31 @@ func (p paymentObjectImp) Initiate(amount float64, currency, ref string, custome
  * @amount - original value
  * returns - int value
  */
-func (paymentObjectImp) convert(amount float64) int {
+func (*paymentObjectImp) convert(amount float64) int {
 	return int(math.Round(amount * 100))
 }
 
 // TODO: refactore the complete url to be a function and not a reciever method
 
 /*
- * completeUrl - returns the proper url for live and test objects
- * @endPoint - the endpoint to add to the base url
- * returns - the completed url
+ * ChargeCard - This allows you charge a card using the token generated during the initial transaction which was sent via webhook
+ * @transactionRef - Unique case-sensitive transaction reference. If you do not pass this parameter, Squad will generate a unique reference for you.
+ * @tokenId - String A unique tokenization code for each card transaction and it is returned via the webhook for first charge on the card.
+ * @amount - Integer Amount to charge from card in the lowest currency value. kobo for NGN transactions or cent for USD transactions
  */
+func (p *paymentObjectImp) ChargeCard(transactionRef, tokenId string, amount float64) (map[string]any, error) {
+	switch {
+	case tokenId == "":
+		return nil, errors.New("please provide the token id returned via the webhook for first charge on the card")
+	case amount < 1:
+		return nil, errors.New("amount can not be less then 1")
+	case transactionRef == "":
+		return nil, errors.New("please provide a transaction refrence")
+	}
+	body := map[string]any{
+		"transaction_ref": transactionRef,
+		"token_id":        tokenId,
+		"amount":          p.convert(amount),
+	}
+	return utils.MakeRequest(body, utils.CompleteUrl(chargeCardEndpoint, p.live), p.ApiKey, "POST")
+}

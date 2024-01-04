@@ -157,3 +157,52 @@ func Test_paymentObjectImp_Initiate_wrong_input_amount(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, "amount is not provided")
 }
+
+func Test_paymentObjectImp_ChargeCard_success(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	amount := float64(100)
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.ChargeCard("ghtyretuf", "tJlYMKcwPd", amount)
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+}
+
+func Test_paymentObjectImp_ChargeCard_wrong_input(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.ChargeCard("ghtyretuf", "tJlYMKcwPd", 0)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "amount can not be less then 1")
+
+	res1, err1 := payObj.ChargeCard("ghtyretuf", "", 1)
+	assert.Nil(t, res1)
+	assert.Error(t, err1)
+	assert.EqualError(t, err1, "please provide the token id returned via the webhook for first charge on the card")
+
+	res2, err2 := payObj.ChargeCard("", "xyz", 1)
+	assert.Nil(t, res2)
+	assert.Error(t, err2)
+	assert.EqualError(t, err2, "please provide a transaction refrence")
+
+}
