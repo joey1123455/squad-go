@@ -502,3 +502,29 @@ func Test_NewCustomerVirtualAcc_wrong_input_bvn(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, "invalid bvn format should be 11 digits")
 }
+
+func Test_squadBaseACC_CreateSubMerchant(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	customerData := map[string]any{
+		"display_name":   "james dash",
+		"account_name":   "Joseph Folayan",
+		"bank_code":      "000015",
+		"account_number": "2218347027",
+		"bank":           "Zenith Bank Plc",
+	}
+
+	res, err := squad.CreateSubMerchant(customerData)
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, true, res["success"])
+	assert.Equal(t, float64(200), res["status"])
+}

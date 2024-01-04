@@ -5,6 +5,11 @@ import (
 	"strings"
 
 	"github.com/joey1123455/squad-go/utils"
+	"golang.org/x/exp/slices"
+)
+
+const (
+	makeSubMerchantEndpoint string = "merchant/create-sub-users"
 )
 
 // an interface exposing the methods of a squad object implementation
@@ -12,6 +17,7 @@ type SquadBaseAcc interface {
 	CreatePaymentObject(charge bool, chans []string) PaymentObject
 	NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error)
 	NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error)
+	CreateSubMerchant(customerData map[string]any) (map[string]any, error)
 }
 
 /*
@@ -65,7 +71,7 @@ func NewSquadObj(key, url, name string, live bool) (SquadBaseAcc, error) {
  * @charge bool - a bool used to represent wether transaction fees are charged from the customer or merchant.
  * @chans - a string slice of payment channels accepted by the merchant.
  */
-func (sba squadBaseACC) CreatePaymentObject(charge bool, chans []string) PaymentObject {
+func (sba *squadBaseACC) CreatePaymentObject(charge bool, chans []string) PaymentObject {
 	// TODO: implement validation for the payment channel slice
 	return &paymentObjectImp{
 		ApiKey:       sba.ApiKey,
@@ -86,7 +92,7 @@ func (sba squadBaseACC) CreatePaymentObject(charge bool, chans []string) Payment
  * @no - string representing a users phone number.
  * @bvn - string representing the bussiness bvn associated to the provided bvn
  */
-func (sba squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error) {
+func (sba *squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error) {
 	// input validation
 	switch {
 	case id == "":
@@ -127,7 +133,7 @@ func (sba squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (V
  * @beneficiaryAcc - customers account no
  * @bvn - string representing the bussiness bvn associated to the provided bvn
  */
-func (sba squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error) {
+func (sba *squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error) {
 	// input validation
 	switch {
 	case customerID == "":
@@ -171,11 +177,37 @@ func (sba squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, m
 }
 
 /*
+ * CreateSubMerchant - This API is used to create a sub-merchant, the sub-merchant will have its own ID and will automatically have its own view on the dashboard.
+ * @customerData - map[string]string sub merchants data required for creation {
+ * 		@display_name - String Name of sub-merchant
+ * 		@account_name - String Sub-merchant's settlement bank account name
+ * 		@account_number -String Sub-merchant's settlement account number
+ * 		@bank_code - String Sub-merchant's settlement bank code. e.g 058
+ * 		@bank - String Name of sub-merchant's settlement bank e.g GTBank
+ * }
+ */
+func (s *squadBaseACC) CreateSubMerchant(customerData map[string]any) (map[string]any, error) {
+	options := []string{
+		"display_name", "account_name", "account_number",
+		"bank_code", "bank",
+	}
+	for k, v := range customerData {
+		switch {
+		case !slices.Contains(options, k):
+			delete(customerData, k)
+		case v == "":
+			delete(customerData, k)
+		}
+	}
+	return utils.MakeRequest(customerData, utils.CompleteUrl(makeSubMerchantEndpoint, s.Live), s.ApiKey, "POST")
+}
+
+/*
  * parsedVirtualAccName - combines the customer name with the bussines name for virtual account creation
  * @customerName - string representing customers name for a virtual account
  * @accType - string account type 1 for bussiness, 2 for customer
  */
-func (sba squadBaseACC) parseVirtualAccName(customerName string, accType int) string {
+func (sba *squadBaseACC) parseVirtualAccName(customerName string, accType int) string {
 	if accType == 1 {
 		return sba.AccountName + "-" + customerName
 	}
