@@ -528,3 +528,21 @@ func Test_squadBaseACC_CreateSubMerchant(t *testing.T) {
 	assert.Equal(t, true, res["success"])
 	assert.Equal(t, float64(200), res["status"])
 }
+
+func Test_squadBaseACC_WalletBalance(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	res, err := squad.WalletBalance()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, true, res["success"])
+	assert.Equal(t, float64(200), res["status"])
+}

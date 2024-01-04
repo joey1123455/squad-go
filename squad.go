@@ -10,6 +10,7 @@ import (
 
 const (
 	makeSubMerchantEndpoint string = "merchant/create-sub-users"
+	walletBalanceEndpoint   string = "merchant/balance"
 )
 
 // an interface exposing the methods of a squad object implementation
@@ -18,6 +19,8 @@ type SquadBaseAcc interface {
 	NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error)
 	NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error)
 	CreateSubMerchant(customerData map[string]any) (map[string]any, error)
+	WalletBalance() (map[string]any, error)
+	AccountLookup(bankCode, accountNumber string) (map[string]any, error)
 }
 
 /*
@@ -200,6 +203,13 @@ func (s *squadBaseACC) CreateSubMerchant(customerData map[string]any) (map[strin
 		}
 	}
 	return utils.MakeRequest(customerData, utils.CompleteUrl(makeSubMerchantEndpoint, s.Live), s.ApiKey, "POST")
+}
+
+/*
+ * WalletBalance - This endpoint allows you get your Squad Wallet Balance. Please be informed that the wallet balance is in KOBO. (Please note that you can't get wallet balance for Dollar transactions)
+ */
+func (sba *squadBaseACC) WalletBalance() (map[string]any, error) {
+	return utils.MakeGetRequest(map[string]string{"currency_id": "NGN"}, utils.CompleteUrl(walletBalanceEndpoint, sba.Live), sba.ApiKey)
 }
 
 /*
