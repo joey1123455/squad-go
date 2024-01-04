@@ -18,12 +18,14 @@ import (
 const (
 	initiatePaymentEndPoint string = "transaction/initiate"
 	chargeCardEndpoint      string = "transaction/charge_card"
+	verifyPaymentEndpoint   string = "transaction/verify/"
 )
 
 // A interface exposing a private squad objects and its public methods.
 type PaymentObject interface {
 	Initiate(amount float64, currency, ref string, customer map[string]string, metaData any, reocure bool) (map[string]any, error)
 	ChargeCard(transactionRef, tokenId string, amount float64) (map[string]any, error)
+	VerifyTransaction(transactionRef string) (map[string]any, error)
 }
 
 /*
@@ -126,4 +128,16 @@ func (p *paymentObjectImp) ChargeCard(transactionRef, tokenId string, amount flo
 		"amount":          p.convert(amount),
 	}
 	return utils.MakeRequest(body, utils.CompleteUrl(chargeCardEndpoint, p.live), p.ApiKey, "POST")
+}
+
+/*
+ * VerifyTransaction - This is an endpoint that allows you to query the status of a particular transaction using the unique transaction reference attached to the transaction.
+ * @transactionRef - String Unique transaction reference that identifies each transaction
+ */
+func (p *paymentObjectImp) VerifyTransaction(transactionRef string) (map[string]any, error) {
+	switch {
+	case transactionRef == "":
+		return nil, errors.New("please provide a transaction ref")
+	}
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(verifyPaymentEndpoint+transactionRef, p.live), p.ApiKey)
 }

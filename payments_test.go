@@ -204,5 +204,45 @@ func Test_paymentObjectImp_ChargeCard_wrong_input(t *testing.T) {
 	assert.Nil(t, res2)
 	assert.Error(t, err2)
 	assert.EqualError(t, err2, "please provide a transaction refrence")
+}
+
+func Test_PaymentObjImplementation_VerifyTransaction(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.VerifyTransaction("SQSDKD6383995714662600007")
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, float64(200), res["status"])
+	assert.Equal(t, true, res["success"])
+
+}
+
+func Test_PaymentObjImplementation_VerifyTransaction_wrong_input(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	charge := false
+	payChan := []string{"card", "bank", "ussd"}
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+	payObj := squad.CreatePaymentObject(charge, payChan)
+	res, err := payObj.VerifyTransaction("")
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "please provide a transaction ref")
 
 }
