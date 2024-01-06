@@ -88,3 +88,18 @@ func Test_squadBaseACC_GetAllTransfers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
 }
+
+func Test_squadBaseACC_RequeryTransfer(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	res, err := squad.RequeryTransfer("1tyrndiirlsos;ie")
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+}

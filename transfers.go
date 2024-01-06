@@ -12,6 +12,7 @@ const (
 	accountLookupEndpoint   string = "payout/account/lookup"
 	transferFundsEndpoint   string = "payout/transfer"
 	getAllTransfersEndpoint string = "payout/list"
+	requeryTransferEndpoint string = "payout/requery"
 )
 
 /*
@@ -83,4 +84,12 @@ func (sba *squadBaseACC) GetAllTransfers(page, perPage, dir string) (map[string]
 		querries["dir"] = dir
 	}
 	return utils.MakeGetRequest(querries, utils.CompleteUrl(getAllTransfersEndpoint, sba.Live), sba.ApiKey)
+}
+
+/*
+ * RequeryTransfer - This API allows you re-query the status of a transfer made to know if it was successful, failed, reversed or pending.
+ * @transactionReference - String Unique Transaction Reference used to initiate a transfer. Please ensure that you append your merchant ID to the transaction Reference you are creating. This is compulsory as it will throw an error if you don't append it.
+ */
+func (sba squadBaseACC) RequeryTransfer(transactionReference string) (map[string]any, error) {
+	return utils.MakeRequest(map[string]any{"transaction_reference": transactionReference}, utils.CompleteUrl(requeryTransferEndpoint, sba.Live), sba.ApiKey, "POST")
 }

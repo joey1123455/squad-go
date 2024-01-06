@@ -23,6 +23,7 @@ type SquadBaseAcc interface {
 	AccountLookup(bankCode, accountNumber string) (map[string]any, error)
 	FundTransfer(transactionData map[string]any) (map[string]any, error)
 	GetAllTransfers(page, perPage, dir string) (map[string]any, error)
+	RequeryTransfer(transactionReference string) (map[string]any, error)
 }
 
 /*
