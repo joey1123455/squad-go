@@ -48,3 +48,43 @@ func Test_squadBaseACC_Wrong_input(t *testing.T) {
 	assert.Error(t, err1)
 	assert.EqualError(t, err1, "please provide a bank code")
 }
+
+func Test_squadBaseACC_FundTransfer(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	data := map[string]any{
+
+		"remark":                "for test transfer to my customer",
+		"bank_code":             "000013",
+		"currency_id":           "NGN",
+		"amount":                "100",
+		"account_number":        "0123456789",
+		"transaction_reference": "SBABCKDY_12345",
+		"account_name":          "BOLUS PAUL",
+	}
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	res, err := squad.FundTransfer(data)
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+}
+
+func Test_squadBaseACC_GetAllTransfers(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	res, err := squad.GetAllTransfers("1", "10", "asc")
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+}

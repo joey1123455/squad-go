@@ -21,6 +21,8 @@ type SquadBaseAcc interface {
 	CreateSubMerchant(customerData map[string]any) (map[string]any, error)
 	WalletBalance() (map[string]any, error)
 	AccountLookup(bankCode, accountNumber string) (map[string]any, error)
+	FundTransfer(transactionData map[string]any) (map[string]any, error)
+	GetAllTransfers(page, perPage, dir string) (map[string]any, error)
 }
 
 /*
