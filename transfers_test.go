@@ -19,8 +19,9 @@ func Test_squadBaseACC_AccountLookup(t *testing.T) {
 	squad, err := NewSquadObj(apiKey, url, name, live)
 	assert.Nil(t, err)
 	assert.NotNil(t, squad)
+	transferCl := squad.NewTransferClient()
 
-	res, err := squad.AccountLookup(bank, account)
+	res, err := transferCl.AccountLookup(bank, account)
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
 }
@@ -38,12 +39,13 @@ func Test_squadBaseACC_Wrong_input(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, squad)
 
-	res, err := squad.AccountLookup(bank, account1)
+	transferCl := squad.NewTransferClient()
+	res, err := transferCl.AccountLookup(bank, account1)
 	assert.Nil(t, res)
 	assert.Error(t, err)
 	assert.EqualError(t, err, "invalid account no")
 
-	res1, err1 := squad.AccountLookup("", account)
+	res1, err1 := transferCl.AccountLookup("", account)
 	assert.Nil(t, res1)
 	assert.Error(t, err1)
 	assert.EqualError(t, err1, "please provide a bank code")
@@ -69,7 +71,8 @@ func Test_squadBaseACC_FundTransfer(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, squad)
 
-	res, err := squad.FundTransfer(data)
+	transferCl := squad.NewTransferClient()
+	res, err := transferCl.FundTransfer(data)
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
 }
@@ -84,7 +87,8 @@ func Test_squadBaseACC_GetAllTransfers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, squad)
 
-	res, err := squad.GetAllTransfers("1", "10", "asc")
+	transferCl := squad.NewTransferClient()
+	res, err := transferCl.GetAllTransfers("1", "10", "asc")
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
 }
@@ -99,7 +103,8 @@ func Test_squadBaseACC_RequeryTransfer(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, squad)
 
-	res, err := squad.RequeryTransfer("1tyrndiirlsos;ie")
+	transferCl := squad.NewTransferClient()
+	res, err := transferCl.RequeryTransfer("1tyrndiirlsos;ie")
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
 }

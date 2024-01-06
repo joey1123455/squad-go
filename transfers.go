@@ -15,6 +15,13 @@ const (
 	requeryTransferEndpoint string = "payout/requery"
 )
 
+type SquadTransferClient interface {
+	AccountLookup(bankCode, accountNumber string) (map[string]any, error)
+	FundTransfer(transactionData map[string]any) (map[string]any, error)
+	GetAllTransfers(page, perPage, dir string) (map[string]any, error)
+	RequeryTransfer(transactionReference string) (map[string]any, error)
+}
+
 /*
   - @AccountLookup - This API allows you lookup/confirm the account name of the recipient you intend to credit. This should be done before initiating the transfer.
   - @bankCode - String Unique NIP code that identifies a bank.

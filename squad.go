@@ -5,12 +5,6 @@ import (
 	"strings"
 
 	"github.com/joey1123455/squad-go/utils"
-	"golang.org/x/exp/slices"
-)
-
-const (
-	makeSubMerchantEndpoint string = "merchant/create-sub-users"
-	walletBalanceEndpoint   string = "merchant/balance"
 )
 
 // an interface exposing the methods of a squad object implementation
@@ -18,12 +12,8 @@ type SquadBaseAcc interface {
 	CreatePaymentObject(charge bool, chans []string) PaymentObject
 	NewBussinessVirtualAcc(id, name, no, acc, bvn string) (VirtualAccount, error)
 	NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error)
-	CreateSubMerchant(customerData map[string]any) (map[string]any, error)
-	WalletBalance() (map[string]any, error)
-	AccountLookup(bankCode, accountNumber string) (map[string]any, error)
-	FundTransfer(transactionData map[string]any) (map[string]any, error)
-	GetAllTransfers(page, perPage, dir string) (map[string]any, error)
-	RequeryTransfer(transactionReference string) (map[string]any, error)
+	NewTransferClient() SquadTransferClient
+	NewUtilClient() SquadUtilClient
 }
 
 /*
@@ -183,36 +173,17 @@ func (sba *squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, 
 }
 
 /*
- * CreateSubMerchant - This API is used to create a sub-merchant, the sub-merchant will have its own ID and will automatically have its own view on the dashboard.
- * @customerData - map[string]string sub merchants data required for creation {
- * 		@display_name - String Name of sub-merchant
- * 		@account_name - String Sub-merchant's settlement bank account name
- * 		@account_number -String Sub-merchant's settlement account number
- * 		@bank_code - String Sub-merchant's settlement bank code. e.g 058
- * 		@bank - String Name of sub-merchant's settlement bank e.g GTBank
- * }
+ * NewTransferClient - creates a client to handle transfer api calls
  */
-func (s *squadBaseACC) CreateSubMerchant(customerData map[string]any) (map[string]any, error) {
-	options := []string{
-		"display_name", "account_name", "account_number",
-		"bank_code", "bank",
-	}
-	for k, v := range customerData {
-		switch {
-		case !slices.Contains(options, k):
-			delete(customerData, k)
-		case v == "":
-			delete(customerData, k)
-		}
-	}
-	return utils.MakeRequest(customerData, utils.CompleteUrl(makeSubMerchantEndpoint, s.Live), s.ApiKey, "POST")
+func (sba *squadBaseACC) NewTransferClient() SquadTransferClient {
+	return sba
 }
 
 /*
- * WalletBalance - This endpoint allows you get your Squad Wallet Balance. Please be informed that the wallet balance is in KOBO. (Please note that you can't get wallet balance for Dollar transactions)
+ * NewTransferClient - creates a client to handle util api calls
  */
-func (sba *squadBaseACC) WalletBalance() (map[string]any, error) {
-	return utils.MakeGetRequest(map[string]string{"currency_id": "NGN"}, utils.CompleteUrl(walletBalanceEndpoint, sba.Live), sba.ApiKey)
+func (sba *squadBaseACC) NewUtilClient() SquadUtilClient {
+	return sba
 }
 
 /*
