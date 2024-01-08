@@ -1,6 +1,8 @@
 package squad
 
 import (
+	"errors"
+
 	"github.com/joey1123455/squad-go/utils"
 	"golang.org/x/exp/slices"
 )
@@ -9,12 +11,18 @@ const (
 	makeSubMerchantEndpoint string = "merchant/create-sub-users"
 	walletBalanceEndpoint   string = "merchant/balance"
 	refundEndpoint          string = "transaction/refund"
+	getAllDisputesEndpoint  string = "dispute"
+	getUploadURLEndpoint    string = "dispute/upload-url/"
+	resolveDisputeEndpoint  string = "/dispute/"
 )
 
 type SquadUtilClient interface {
 	CreateSubMerchant(customerData map[string]any) (map[string]any, error)
 	WalletBalance() (map[string]any, error)
 	Refund(data map[string]any) (map[string]any, error)
+	GetAllDisputes() (map[string]any, error)
+	GetUploadURL(ticketId, fileName string) (map[string]any, error)
+	ResolveDisputes(ticketId, action, fileName string) (map[string]any, error)
 }
 
 /*
@@ -74,4 +82,43 @@ func (sba *squadBaseACC) Refund(data map[string]any) (map[string]any, error) {
 		}
 	}
 	return utils.MakeRequest(data, utils.CompleteUrl(refundEndpoint, sba.Live), sba.ApiKey, "POST")
+}
+
+/*
+ * GetAllDisputes - This API is used to get all disputes on your transactions raised by your customers.
+ */
+func (sba *squadBaseACC) GetAllDisputes() (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(getAllDisputesEndpoint, sba.Live), sba.ApiKey)
+}
+
+/*
+ * GetUploadURL - This API is used to get a unique URL to upload an evidence(file) which is a proof or reason to reject a dispute. This is only necessary when we want to reject a dispute.
+ * @ticketId - String representing the dispute tickets id
+ * @fileName - String representing the name of the file for prrof of payment
+ */
+func (sba *squadBaseACC) GetUploadURL(ticketId, fileName string) (map[string]any, error) {
+	return utils.MakeGetRequest(nil, utils.CompleteUrl(getUploadURLEndpoint+ticketId+"/"+fileName, sba.Live), sba.ApiKey)
+}
+
+/*
+  - ResolveDisputes - This API is used to resolve a dispute by either accepting or rejecting it.
+  - @ticketId - String A unique ID that identifies the dispute you want to reject or accept
+  - @action - String This is the action you want to be taken on the raised dispute. The value of this action can be either "rejected" or "accepted"
+
+ * @file_name - String The name of the file uploaded
+*/
+func (sba *squadBaseACC) ResolveDisputes(ticketId, action, fileName string) (map[string]any, error) {
+	switch {
+	case ticketId == "":
+		return nil, errors.New("please pass your ticket id")
+	case action != "reject" && action != "accept":
+		return nil, errors.New("the value of this action can be either 'rejected' or 'accepted'")
+	}
+	data := map[string]any{
+		"action": "accept",
+	}
+	if fileName != "" {
+		data["file_name"] = fileName
+	}
+	return utils.MakeRequest(data, utils.CompleteUrl(resolveDisputeEndpoint+ticketId+"/resolve", sba.Live), sba.ApiKey, "POST")
 }

@@ -77,3 +77,59 @@ func Test_squadBaseACC_Refund(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
 }
+
+func Test_squadBaseACC_GetAllDisputes(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	utilClient := squad.NewUtilClient()
+	res, err := utilClient.GetAllDisputes()
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	assert.Equal(t, true, res["success"])
+	assert.Equal(t, float64(200), res["status"])
+}
+
+func Test_squadBaseACC_GetUploadURL(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	utilClient := squad.NewUtilClient()
+	res, err := utilClient.GetUploadURL("tyyuriiororr", "image.jpg")
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	t.Log(res)
+}
+
+func Test_squadBaseACC_ResolveDisputes(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	utilClient := squad.NewUtilClient()
+	res, err := utilClient.ResolveDisputes("tyyuriiororr", "accept", "image.jpg")
+	// t.Log(err)
+	assert.Nil(t, err)
+	assert.NotNil(t, res)
+	// t.Log(res)
+}
