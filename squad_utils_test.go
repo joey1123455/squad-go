@@ -128,7 +128,7 @@ func Test_squadBaseACC_ResolveDisputes(t *testing.T) {
 
 	utilClient := squad.NewUtilClient()
 	res, err := utilClient.ResolveDisputes("tyyuriiororr", "accept", "image.jpg")
-	// t.Log(err)
+	t.Log(err)
 	assert.Nil(t, err)
 	assert.NotNil(t, res)
 	// t.Log(res)
