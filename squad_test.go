@@ -502,3 +502,27 @@ func Test_NewCustomerVirtualAcc_wrong_input_bvn(t *testing.T) {
 	assert.Error(t, err)
 	assert.EqualError(t, err, "invalid bvn format should be 11 digits")
 }
+
+func Test_squadBaseACC_NewTransferClient(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	transferClient := squad.NewTransferClient()
+	assert.NotNil(t, transferClient)
+}
+
+func Test_squadBaseACC_NewUtilClient(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	transferClient := squad.NewUtilClient()
+	assert.NotNil(t, transferClient)
+}

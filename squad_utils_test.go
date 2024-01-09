@@ -133,3 +133,29 @@ func Test_squadBaseACC_ResolveDisputes(t *testing.T) {
 	assert.NotNil(t, res)
 	// t.Log(res)
 }
+
+func Test_squadBaseACC_ResolveDisputes_wrong_input(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	assert.NotNil(t, squad)
+
+	utilClient := squad.NewUtilClient()
+	res, err := utilClient.ResolveDisputes("tyyuriiororr", "", "image.jpg")
+	t.Log(err)
+	assert.Nil(t, res)
+	assert.Error(t, err)
+	assert.EqualError(t, err, "the value of this action can be either 'rejected' or 'accepted'")
+
+	res1, err1 := utilClient.ResolveDisputes("", "rejected", "image.jpg")
+	t.Log(err1)
+	assert.Nil(t, res1)
+	assert.Error(t, err1)
+	assert.EqualError(t, err1, "please pass your ticket id")
+	// t.Log(res)
+}
