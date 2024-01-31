@@ -193,15 +193,3 @@ func (sba *squadBaseACC) NewUtilClient() SquadUtilClient {
 func (sba *squadBaseACC) NewServicesClient() ServicesClient {
 	return sba
 }
-
-/*
- * parsedVirtualAccName - combines the customer name with the bussines name for virtual account creation
- * @customerName - string representing customers name for a virtual account
- * @accType - string account type 1 for bussiness, 2 for customer
- */
-func (sba *squadBaseACC) parseVirtualAccName(customerName string, accType int) string {
-	if accType == 1 {
-		return sba.AccountName + "-" + customerName
-	}
-	return sba.AccountName + "- " + customerName
-}
