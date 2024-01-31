@@ -526,3 +526,15 @@ func Test_squadBaseACC_NewUtilClient(t *testing.T) {
 	transferClient := squad.NewUtilClient()
 	assert.NotNil(t, transferClient)
 }
+
+func Test_squadBaseACC_ServicesClient(t *testing.T) {
+	_ = godotenv.Load()
+	apiKey := os.Getenv("API_KEY")
+	url := "https://calback/correct.com"
+	name := "test bussines"
+	live := false
+	squad, err := NewSquadObj(apiKey, url, name, live)
+	assert.Nil(t, err)
+	transferClient := squad.NewServicesClient()
+	assert.NotNil(t, transferClient)
+}

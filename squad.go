@@ -14,6 +14,7 @@ type SquadBaseAcc interface {
 	NewCustomerVirtualAcc(customerID, firstName, lastName, mobileNo, email, dob, address, gender, beneficiaryAcc, bvn string) (VirtualAccount, error)
 	NewTransferClient() SquadTransferClient
 	NewUtilClient() SquadUtilClient
+	NewServicesClient() ServicesClient
 }
 
 /*
@@ -105,7 +106,7 @@ func (sba *squadBaseACC) NewBussinessVirtualAcc(id, name, no, acc, bvn string) (
 
 	return &bussinessVA{
 		CustomerID:     id,
-		BussinessName:  sba.parseVirtualAccName(name, 1),
+		BussinessName:  name,
 		MobileNo:       no,
 		ApiKey:         sba.ApiKey,
 		Bvn:            bvn,
@@ -156,7 +157,7 @@ func (sba *squadBaseACC) NewCustomerVirtualAcc(customerID, firstName, lastName, 
 
 	return &customerVA{
 		CustomerID:     customerID,
-		FirstName:      sba.parseVirtualAccName(firstName, 2),
+		FirstName:      firstName,
 		LastName:       lastName,
 		MobileNo:       mobileNo,
 		Email:          email,
@@ -183,6 +184,13 @@ func (sba *squadBaseACC) NewTransferClient() SquadTransferClient {
  * NewTransferClient - creates a client to handle util api calls
  */
 func (sba *squadBaseACC) NewUtilClient() SquadUtilClient {
+	return sba
+}
+
+/*
+ * NewServicesClient - creates a client to handle calls to the value added services endpoints
+ */
+func (sba *squadBaseACC) NewServicesClient() ServicesClient {
 	return sba
 }
 
