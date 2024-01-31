@@ -101,29 +101,6 @@ func Test_SquadBaseAcc_CreatePaymentObject(t *testing.T) {
 	assert.Equal(t, paymentChan, payImp.PaymentChans)
 }
 
-func Test_squadBaseACC_parsedVirtualAccName(t *testing.T) {
-	_ = godotenv.Load()
-	apiKey := os.Getenv("API_KEY")
-	url := "https://calback/correct.com"
-	name := "test bussiness"
-	live := false
-	customerName := "Joseph Folayan"
-	squad, err := NewSquadObj(apiKey, url, name, live)
-	assert.Nil(t, err)
-	squadImp := squad.(*squadBaseACC)
-	res := squadImp.parseVirtualAccName(customerName, 1)
-
-	assert.Equal(t, "test bussiness-Joseph Folayan", res)
-
-	name1 := "test"
-	customerName1 := "James Muhammed"
-	squad1, err := NewSquadObj(apiKey, url, name1, live)
-	assert.Nil(t, err)
-	squadImp1 := squad1.(*squadBaseACC)
-	res1 := squadImp1.parseVirtualAccName(customerName1, 1)
-	assert.Equal(t, "test-James Muhammed", res1)
-}
-
 func Test_squadBaseACC_NewBussinessVirtualAcc_success(t *testing.T) {
 	_ = godotenv.Load()
 	apiKey := os.Getenv("API_KEY")
@@ -136,7 +113,6 @@ func Test_squadBaseACC_NewBussinessVirtualAcc_success(t *testing.T) {
 	accNo := "1234567891"
 	bvn := "12345678911"
 	squad, err := NewSquadObj(apiKey, url, name, live)
-	expectedName := squad.(*squadBaseACC).parseVirtualAccName(vAName, 1)
 	assert.Nil(t, err)
 	virAcc, err := squad.NewBussinessVirtualAcc(id, vAName, no, accNo, bvn)
 	assert.Nil(t, err)
@@ -144,7 +120,7 @@ func Test_squadBaseACC_NewBussinessVirtualAcc_success(t *testing.T) {
 
 	virImp := virAcc.(*bussinessVA)
 	assert.Equal(t, id, virImp.CustomerID)
-	assert.Equal(t, expectedName, virImp.BussinessName)
+	assert.Equal(t, vAName, virImp.BussinessName)
 	assert.Equal(t, name, virImp.AccountName)
 	assert.Equal(t, apiKey, virImp.ApiKey)
 	assert.Equal(t, no, virImp.MobileNo)
@@ -265,7 +241,6 @@ func Test_NewCustomerVirtualAcc_success(t *testing.T) {
 	accNo := "1234567291"
 	bvn := "12345678911"
 	squad, err := NewSquadObj(apiKey, url, name, live)
-	expectedName := squad.(*squadBaseACC).parseVirtualAccName(first, 2)
 	assert.Nil(t, err)
 	virAcc, err := squad.NewCustomerVirtualAcc(id, first, last, no, email, dob, address, gender, accNo, bvn)
 	assert.Nil(t, err)
@@ -273,7 +248,7 @@ func Test_NewCustomerVirtualAcc_success(t *testing.T) {
 
 	virImp := virAcc.(*customerVA)
 	assert.Equal(t, id, virImp.CustomerID)
-	assert.Equal(t, expectedName, virImp.FirstName)
+	assert.Equal(t, first, virImp.FirstName)
 	assert.Equal(t, last, virImp.LastName)
 	assert.Equal(t, email, virImp.Email)
 	assert.Equal(t, dob, virImp.Dob)
